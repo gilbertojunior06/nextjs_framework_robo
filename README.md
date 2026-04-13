@@ -105,7 +105,7 @@ Orientação: Profª. Natalia Lima Oliveira (Lógica Industrial e Automação)
 ## Demonstração
 
 ### Painel de Controle Principal
-![DASHBOARD](https://github.com/gilbertojunior06/nextjs_framework/blob/main/public/print_dashboard.png?raw=true)
+![DASHBOARD](public/print_dashboard.png)
 
 ### Célula de Separação de Cores
 ![SEPARAÇÃO CORES](https://github.com/gilbertojunior06/nextjs_framework/blob/main/public/print_separacaocores.png?raw=true)
