@@ -264,6 +264,7 @@ export default function RoboPage() {
                     fill 
                     style={{ objectFit: 'cover', opacity: isPowerOn ? 1 : 0.2 }} 
                     unoptimized 
+                    priority
                 />
               </div>
             </div>

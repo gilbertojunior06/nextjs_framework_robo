@@ -48,21 +48,10 @@ export default function Home() {
           <span>SENAI | Tech</span>
         </div>
         <nav className="nav-list">
-
-          <Link href="/home" className="nav-item">
-            <Activity size={20} />
-            <span>Home</span>
-          </Link>
-
           <Link href="/" className="nav-item active">
             <LayoutDashboard size={20} />
             <span>Dashboard </span>
           </Link>
-          
-          <a href="#" className="nav-item">
-            <Activity size={20} />
-            <span>Máquinas</span>
-          </a>
 
           <Link href="/separacao_cores" className="nav-item">
             <Activity size={20} />

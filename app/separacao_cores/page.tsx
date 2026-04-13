@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// Ícone 'Link2' removido para limpar erro do ESLint
 import { Clock, ArrowLeft, UserCircle, Bell, Settings, Circle, Terminal, Activity } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRobotSSE } from '@/hooks/useRobotSSE';
 
 // --- INTERFACES ---
 interface MetricProps { title: string; value: string | number; unit: string; sub: string; meta: string; color: string; }
@@ -35,9 +35,11 @@ const StatusCircle = ({ label, count, colorClass }: CircleProps) => (
 
 export default function DashboardRobotica() {
   const [time, setTime] = useState('--:--:--');
-  const [isApiConnected, setIsApiConnected] = useState(false);
   const [hasNewNotification, setHasNewNotification] = useState(true); 
   
+  // Pegando 'connected' e 'data' do seu hook real
+  const { data: sseData, connected } = useRobotSSE();
+
   const [dados, setDados] = useState({
     totalPecas: 0,
     totalFalhas: 0,
@@ -47,58 +49,40 @@ export default function DashboardRobotica() {
   });
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
-  const fetchDados = async () => {
-    try {
-      // Fetch com headers para evitar cache e detectar queda do Node-RED
-      const res = await fetch('/api/update-robot', { 
-        cache: 'no-store',
-        headers: { 'Pragma': 'no-cache' } 
-      });
-
-      // Se a API retornar erro (como o 503 que configuramos), cai no catch
-      if (!res.ok) throw new Error(`Status: ${res.status}`);
-      
-      const data = await res.json();
-      
-      // LOG NO F12 (Console) para monitoramento em tempo real
-      console.log(">>> DADOS VIVOS:", data);
-      
-      setIsApiConnected(true);
+  // Monitora o SSE e atualiza o estado ignorando erros de tipagem com 'as any'
+  useEffect(() => {
+    if (sseData) {
+      const sse = sseData as any; 
 
       setDados({
-        totalPecas: data.total_pecas || 0,
-        totalFalhas: data.total_falhas || 0,
-        taxaAcerto: data.taxa_acerto || "0%",
-        oee: data.oee || 0,
+        totalPecas: sse.total_pecas || 0,
+        totalFalhas: sse.total_falhas || 0,
+        taxaAcerto: String(sse.taxa_acerto || "0%"),
+        oee: Number(sse.oee || 0),
         contagemCores: {
-          azul: data.azul || 0,
-          verde: data.verde || 0,
-          vermelho: data.vermelho || 0
+          azul: sse.azul || 0,
+          verde: sse.verde || 0,
+          vermelho: sse.vermelho || 0
         }
       });
 
-      if (data.ultimo_log && data.ultimo_log !== "Sem atividade") {
-         setLogs(prev => {
-            if (prev.length > 0 && prev[0].msg === data.ultimo_log) return prev;
-            const newLog = { 
-              msg: data.ultimo_log, 
-              time: new Date().toLocaleTimeString('pt-BR'), 
-              id: `log-${Date.now()}` 
-            };
-            if(data.ultimo_log.toLowerCase().includes('erro')) setHasNewNotification(true);
-            return [newLog, ...prev].slice(0, 10);
-         });
+      if (sse.ultimo_log && sse.ultimo_log !== "Sem atividade") {
+        setLogs(prev => {
+          if (prev.length > 0 && prev[0].msg === sse.ultimo_log) return prev;
+          const newLog = { 
+            msg: sse.ultimo_log, 
+            time: new Date().toLocaleTimeString('pt-BR'), 
+            id: `log-${Date.now()}` 
+          };
+          return [newLog, ...prev].slice(0, 10);
+        });
       }
-    } catch (err) {
-      console.error("DEBUG F12 (NODE-RED OFF):", err);
-      setIsApiConnected(false); // Rodapé fica vermelho se a conexão falhar
     }
-  };
+  }, [sseData]);
 
   useEffect(() => {
-    const interval = setInterval(fetchDados, 2000);
     const timer = setInterval(() => setTime(new Date().toLocaleTimeString('pt-BR')), 1000);
-    return () => { clearInterval(interval); clearInterval(timer); };
+    return () => clearInterval(timer);
   }, []); 
 
   return (
@@ -112,7 +96,6 @@ export default function DashboardRobotica() {
             <span className="text-[10px] font-black text-slate-500 uppercase">Voltar</span>
           </Link>
           <Image src="/senai.png" alt="Logo SENAI" width={120} height={40} className="w-auto h-auto object-contain" priority />
-          {/* Logo do robô com tratamento de transparência e brilho */}
           <Image src="/robo.png" alt="Robo" width={50} height={40} className="w-auto h-auto object-contain mix-blend-multiply brightness-110" priority />
           <h1 className="text-2xl font-black text-[#0f172a] uppercase tracking-tight">Célula Robótica - Separação de Cores</h1>
         </div>
@@ -182,7 +165,7 @@ export default function DashboardRobotica() {
             <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                {logs.length === 0 ? <div className="text-[9px] text-slate-400 text-center mt-10 italic">Aguardando sinais...</div> : 
                  logs.map(log => (
-                   <div key={log.id} className="text-[9px] font-bold border-b border-slate-200 py-2 uppercase flex justify-between items-center animate-in fade-in slide-in-from-top-1">
+                   <div key={log.id} className="text-[9px] font-bold border-b border-slate-200 py-2 uppercase flex justify-between items-center">
                      <span className="text-slate-600 truncate mr-2">{log.msg}</span>
                      <span className="text-slate-400 shrink-0 font-mono bg-white px-1 rounded shadow-sm">{log.time}</span>
                    </div>
@@ -194,11 +177,11 @@ export default function DashboardRobotica() {
       </main>
 
       {/* --- RODAPÉ --- */}
-      <footer className="h-14 bg-white flex items-center justify-center gap-8 border-t-2 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      <footer className="h-14 bg-white flex items-center justify-center gap-8 border-t-2 shrink-0 shadow-sm">
         <div className="flex items-center gap-3 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-100">
           <Terminal size={14} className="text-blue-500" />
           <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-            FRONTEND: <span className="text-emerald-600">NPM RUN DEV ACTIVE</span>
+            SISTEMA: <span className="text-emerald-600">APP ROUTER ACTIVE</span>
           </span>
           <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
         </div>
@@ -206,17 +189,13 @@ export default function DashboardRobotica() {
         <div className="w-1 h-1 bg-slate-300 rounded-full" />
 
         <div className="flex items-center gap-3 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-100">
-          <Activity size={14} className={isApiConnected ? "text-red-500" : "text-slate-400"} />
+          <Activity size={14} className={connected ? "text-emerald-500" : "text-red-500"} />
           <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-            BACKEND: <span className={isApiConnected ? "text-emerald-600" : "text-red-500"}>
-              {isApiConnected ? "NODE-RED CONNECTED" : "NODE-RED DISCONNECTED"}
+            STREAM: <span className={connected ? "text-emerald-600" : "text-red-500"}>
+              {connected ? "SSE CONNECTED" : "SSE DISCONNECTED"}
             </span>
           </span>
-          <div className={`w-2 h-2 rounded-full ${isApiConnected ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
-        </div>
-        
-        <div className="flex items-center gap-2 opacity-60">
-           <span className="text-[8px] font-bold uppercase text-slate-400 tracking-tighter italic">Industrial Protocol: WebSocket/JSON</span>
+          <div className={`w-2 h-2 rounded-full ${connected ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
         </div>
       </footer>
     </div>
