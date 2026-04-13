@@ -102,7 +102,13 @@ Estudante de Desenvolvimento Front-End & Automação Industrial - SENAI Tech
 
 Orientação: Profª. Natalia Lima Oliveira (Lógica Industrial e Automação)
 
-Demonstração
-![DASHBOARD](dashboard.png)
-![SEPARAÇÃO CORES](separaçaocores.png)
-![ROBO](robo1.png)
+## Demonstração
+
+### Painel de Controle Principal
+![DASHBOARD](./public/dashboard.png)
+
+### Célula de Separação de Cores
+![SEPARAÇÃO CORES](./public/separaçaocores.png)
+
+### Monitoramento do Robô
+![ROBO](./public/robo1.png)
