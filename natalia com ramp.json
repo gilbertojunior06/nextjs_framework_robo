@@ -1,0 +1,151 @@
+[
+    {
+        "id": "69fdd786d4b1134a",
+        "type": "inject",
+        "z": "ebcfef6abe9ccd95",
+        "name": "RAMP 1 emexecução",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[false,false,false,true,false,false]",
+        "payloadType": "json",
+        "x": 360,
+        "y": 160,
+        "wires": [
+            [
+                "70581c6b66d4030a"
+            ]
+        ]
+    },
+    {
+        "id": "70581c6b66d4030a",
+        "type": "function",
+        "z": "ebcfef6abe9ccd95",
+        "name": "function 1",
+        "func": "const mapaMensagens = [\n    \"Robô em Home\",          // 0\n    \"Robô em sleep\",         // 1\n    \"Robô em movimento\",     // 2\n    \"Rampa 1 em execução\",   // 3\n    \"Rampa 2 em execução\",   // 4\n    \"Rampa 3 em execução\"    // 5\n];\n\nconst entradasDigitais = msg.payload; \nlet algoAtivo = false;\n\nfor (let i = 0; i < mapaMensagens.length; i++) {\n    if (entradasDigitais[i] === true || entradasDigitais[i] === 1) {\n        algoAtivo = true;\n        \n        // DISPARA CADA MENSAGEM SEPARADA\n        node.send({\n            payload: {\n                ultimo_log: mapaMensagens[i] // O Front-end procura por esse nome\n            }\n        });\n    }\n}\n\nif (!algoAtivo) {\n    node.send({ payload: { ultimo_log: \"Robô em Standby\" } });\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 220,
+        "wires": [
+            [
+                "d4073112ba26c76b",
+                "9dcef204e6080c5d"
+            ]
+        ]
+    },
+    {
+        "id": "d4073112ba26c76b",
+        "type": "http request",
+        "z": "ebcfef6abe9ccd95",
+        "name": "enviar Dashboard",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://localhost:3000/api/update-robot",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 790,
+        "y": 360,
+        "wires": [
+            [
+                "9dcef204e6080c5d"
+            ]
+        ]
+    },
+    {
+        "id": "9dcef204e6080c5d",
+        "type": "debug",
+        "z": "ebcfef6abe9ccd95",
+        "name": "saida",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 990,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "1755b62f04825ce6",
+        "type": "inject",
+        "z": "ebcfef6abe9ccd95",
+        "name": "RAMP 2 emexecução",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[false,false,false,false,true,false]",
+        "payloadType": "json",
+        "x": 360,
+        "y": 240,
+        "wires": [
+            [
+                "70581c6b66d4030a"
+            ]
+        ]
+    },
+    {
+        "id": "7c3a8fd6122f2c26",
+        "type": "inject",
+        "z": "ebcfef6abe9ccd95",
+        "name": "RAMP 3 em execução",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[false,false,false,false,false,true]",
+        "payloadType": "json",
+        "x": 360,
+        "y": 340,
+        "wires": [
+            [
+                "70581c6b66d4030a"
+            ]
+        ]
+    }
+]
