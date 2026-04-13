@@ -105,10 +105,10 @@ Orientação: Profª. Natalia Lima Oliveira (Lógica Industrial e Automação)
 ## Demonstração
 
 ### Painel de Controle Principal
-![DASHBOARD](./public/dashboard.png)
+![DASHBOARD](public/dashboard.png)
 
 ### Célula de Separação de Cores
-![SEPARAÇÃO CORES](./public/separacaocores.png)
+![SEPARAÇÃO CORES](public/separacaocores.png)
 
 ### Monitoramento do Robô
-![ROBO](./public/robo1.png)
+![ROBO](public/robo1.png)
