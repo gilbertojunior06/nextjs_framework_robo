@@ -108,7 +108,7 @@ Orientação: Profª. Natalia Lima Oliveira (Lógica Industrial e Automação)
 ![DASHBOARD](public/print_dashboard.png)
 
 ### Célula de Separação de Cores
-![SEPARAÇÃO CORES](public/print_celula.png)
+![SEPARAÇÃO CORES](public/print_separacaocores.png)
 
 ### Monitoramento do Robô
-![ROBO](public/print_robo.png)
+![ROBO](public/print_robo1.png)
