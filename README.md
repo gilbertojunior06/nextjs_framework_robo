@@ -104,11 +104,13 @@ Orientação: Profª. Natalia Lima Oliveira (Lógica Industrial e Automação)
 
 ## Demonstração
 
+## Demonstração
+
 ### Painel de Controle Principal
-![DASHBOARD](public/dashboard.png)
+![DASHBOARD](https://github.com/gilbertojunior06/nextjs_framework/blob/main/public/dashboard.png?raw=true)
 
 ### Célula de Separação de Cores
-![SEPARAÇÃO CORES](public/separacaocores.png)
+![SEPARAÇÃO CORES](https://github.com/gilbertojunior06/nextjs_framework/blob/main/public/separacaocores.png?raw=true)
 
 ### Monitoramento do Robô
-![ROBO](public/robo1.png)
+![ROBO](https://github.com/gilbertojunior06/nextjs_framework/blob/main/public/robo1.png?raw=true)
