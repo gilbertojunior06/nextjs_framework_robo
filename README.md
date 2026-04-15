@@ -113,6 +113,3 @@ Gilberto Antônio de Almeida Silvério Júnior
 Estudante de Desenvolvimento Front-End & Automação Industrial - SENAI Tech
 
 Orientação: Profª. Natalia Lima Oliveira (Lógica Industrial e Automação)
-
-## Demonstração
-
