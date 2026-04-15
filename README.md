@@ -1,3 +1,15 @@
+## Video robo Fanuc
+
+https://github.com/user-attachments/assets/c7addfda-2bbb-43c8-8eaf-197fc6b43552
+
+## Demonstração
+<img width="1362" height="691" alt="print_dashboard" src="https://github.com/user-attachments/assets/f0bd9a2c-dc75-4d61-b09b-4fb97d4092dd" />
+
+<img width="1362" height="692" alt="print_separacaocores" src="https://github.com/user-attachments/assets/d7aae99e-23cd-4a88-984c-2b736c4da0e2" />
+
+<img width="1364" height="690" alt="print_robo1" src="https://github.com/user-attachments/assets/505f4cac-4ab4-492e-ac38-a576b9a68b0f" />
+
+
 # 🤖 Dashboard de Monitoramento Industrial - Robotic Cell (SENAI | Tech)
 
 Este projeto é um sistema de monitoramento em tempo real (**Digital Twin**) desenvolvido como parte do currículo do curso no **SENAI | Tech**. O dashboard exibe o status operacional, telemetria de sensores e controles de segurança de uma célula robótica industrial (FANUC).
@@ -104,11 +116,3 @@ Orientação: Profª. Natalia Lima Oliveira (Lógica Industrial e Automação)
 
 ## Demonstração
 
-### Painel de Controle Principal
-![DASHBOARD](public/print_dashboard.png)
-
-### Célula de Separação de Cores
-![SEPARAÇÃO CORES](https://github.com/gilbertojunior06/nextjs_framework/blob/main/public/print_separacaocores.png?raw=true)
-
-### Monitoramento do Robô
-![ROBO](https://github.com/gilbertojunior06/nextjs_framework/blob/main/public/print_robo1.png?raw=true)
