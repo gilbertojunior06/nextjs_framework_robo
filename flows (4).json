@@ -1,0 +1,168 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Fluxo de Teste",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "3cc11d24.ff01a2",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "WARNING: please check you have started this container with a volume that is mounted to /data\\n otherwise any flow changes are lost when you redeploy or upgrade the container\\n (e.g. upgrade to a more recent node-red docker image).\\n  If you are using named volumes you can ignore this warning.\\n Double click or see info side panel to learn how to start Node-RED in Docker to save your work",
+        "info": "\nTo start docker with a bind mount volume (-v option), for example:\n\n```\ndocker run -it -p 1880:1880 -v /home/user/node_red_data:/data --name mynodered nodered/node-red\n```\n\nwhere `/home/user/node_red_data` is a directory on your host machine where you want to store your flows.\n\nIf you do not do this then you can experiment and redploy flows, but if you restart or upgrade the container the flows will be disconnected and lost. \n\nThey will still exist in a hidden data volume, which can be recovered using standard docker techniques, but that is much more complex than just starting with a named volume as described above.",
+        "x": 350,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "3806efb112a86d0e",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "Rampa 1 em execução",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[false,false,false,true,false,false,false,false]",
+        "payloadType": "json",
+        "x": 260,
+        "y": 200,
+        "wires": [
+            [
+                "70581c6b66d4030a"
+            ]
+        ]
+    },
+    {
+        "id": "fe66980841a12b6c",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "saída",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 750,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "70581c6b66d4030a",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "function 1",
+        "func": "// 1. Definição do dicionário de mensagens conforme sua especificação\nconst mapaMensagens = [\n    \"Robô em Home\",          // Índice 0\n    \"Robô em sleep\",         // Índice 1\n    \"Robô em movimento\",     // Índice 2\n    \"Rampa 1 em execução\",   // Índice 3\n    \"Rampa 2 em execução\",   // Índice 4\n    \"Rampa 3 em execução\"    // Índice 5\n];\n\n// 2. O payload recebido (ex: msg.payload = [true, false, true...])\nconst entradasDigitais = msg.payload;\n\n// 3. Filtramos quais posições estão 'true' e mapeamos para o texto\n// Se houver mais de um true, ele retornará todas as mensagens ativas separadas por vírgula\nlet mensagensAtivas = [];\n\nfor (let i = 0; i < mapaMensagens.length; i++) {\n    if (entradasDigitais[i] === true || entradasDigitais[i] === 1) {\n        mensagensAtivas.push(mapaMensagens[i]);\n    }\n}\n\n// 4. Se nada estiver ativo, definimos um status padrão\nconst statusFinal = mensagensAtivas.length > 0 \n    ? mensagensAtivas.join(\" | \") \n    : \"Robô em Standby\";\n\n// 5. Preparação do objeto para o Servidor SSE / Next.js\nmsg.payload = {\n    status_robo: statusFinal,\n    timestamp: new Date().toLocaleTimeString(\"pt-BR\"),\n    // Mantemos os valores brutos caso precise usar em lógica de cores no Next.js\n    raw_bits: entradasDigitais \n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 260,
+        "wires": [
+            [
+                "fe66980841a12b6c",
+                "6138ef5aca506188"
+            ]
+        ]
+    },
+    {
+        "id": "6138ef5aca506188",
+        "type": "http request",
+        "z": "f6f2187d.f17ca8",
+        "name": "Enviar para Dashboards",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://host.docker.internal:3001/update-robot",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 710,
+        "y": 300,
+        "wires": [
+            [
+                "fe66980841a12b6c"
+            ]
+        ]
+    },
+    {
+        "id": "be1ead4c9670a025",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "Rampa 2 em execução",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[false,false,false,false,true,false]",
+        "payloadType": "json",
+        "x": 260,
+        "y": 280,
+        "wires": [
+            [
+                "70581c6b66d4030a"
+            ]
+        ]
+    },
+    {
+        "id": "0eed03bdf99cc1de",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "Rampa 3 em execução",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[false,false,false,false,false,true]",
+        "payloadType": "json",
+        "x": 260,
+        "y": 360,
+        "wires": [
+            [
+                "70581c6b66d4030a"
+            ]
+        ]
+    }
+]

@@ -1,39 +1,31 @@
 import { useEffect, useState } from 'react'
+import { logRobo } from '@/app/robo/logEvents' 
 
-// 1. Criamos uma Interface para definir o formato dos dados do robô
+
 interface RobotData {
-  // Estados de Energia e Segurança
   power?: boolean;
   emergency?: boolean;
-  
-  // Estados dos Botões de Controle
   isHome?: boolean;
   isSleep?: boolean;
-  
-  // Programas e Execução
-  activePgm?: number | null; // 0, 1, 2 ou null
-  pgm1?: boolean;            // Status individual da Rampa 1
-  pgm2?: boolean;            // Status individual da Rampa 2
-  pgm3?: boolean;            // Status individual da Rampa 3
-  
-  // Dados de Processo (O que aparece nos quadradinhos de baixo)
-  status?: number;           // 0 a 5 (conforme seu mapa)
-  mode?: string;             // 'REMOTO', 'MANUAL', etc.
-  load?: string;             // Peso da carga (ex: '1.5kg')
-  temp?: string;             // Temperatura (ex: '38°C')
-  oee?: string;              // Eficiência (ex: '92%')
-  
-  // Contadores (Se você quiser mostrar no log quantas peças o robô fez)
+  activePgm?: number | null; 
+  pgm1?: boolean;            
+  pgm2?: boolean;            
+  pgm3?: boolean;            
+  status?: number;           
+  mode?: string;             
+  load?: string;             
+  temp?: string;             
+  oee?: string;              
   peçasProduzidas?: number;
   falhas?: number;
+  status_robo?: string;      
+  timestamp?: string;        
+  raw_bits?: boolean[];       
 }
-
-
 
 const API_URL = 'http://localhost:3001/events'
 
 export function useRobotSSE() {
-  // 2. Trocamos o <any> pelo tipo da nossa Interface <RobotData | null>
   const [data, setData] = useState<RobotData | null>(null)
   const [connected, setConnected] = useState(false)
 
@@ -42,25 +34,41 @@ export function useRobotSSE() {
 
     source.onopen = () => {
       setConnected(true)
-      console.log('[SSE] Conectado');
+      // Usando seu log estilizado para conexão
+      logRobo("Conectado ao servidor de eventos", "SUCCESS", { status: "Online" });
     }
 
     source.onmessage = (e) => {
       try {
         const parsedData: RobotData = JSON.parse(e.data);
-        console.log("DADO RECEBIDO DO NODE-RED:", parsedData);
+        
+        // --- LOG ESTILIZADO + FORMATO TERMINAL ---
+        // Primeiro a mensagem colorida
+        logRobo(`Dados Recebidos: ${parsedData.status_robo}`);
+
+        // Depois o detalhamento organizado como no terminal (para facilitar leitura)
+        console.log("%c{", "color: #71717a");
+        console.log(`  %c"status_robo": %c"${parsedData.status_robo}",`, "color: #94a3b8", "color: #22c55e");
+        console.log(`  %c"timestamp": %c"${parsedData.timestamp}",`, "color: #94a3b8", "color: #3b82f6");
+        console.log(`  %c"raw_bits": %c${JSON.stringify(parsedData.raw_bits)}`, "color: #94a3b8", "color: #f75599");
+        console.log("%c}", "color: #71717a");
+
         setData(parsedData);
       } catch (err) {
-        console.error('[SSE] Erro ao processar dados:', err);
+        // Log de erro estilizado (você pode mudar a cor no logRobo se quiser)
+        logRobo("Erro ao processar dados", "ERROR", err);
       }
     }
 
     source.onerror = () => {
       setConnected(false)
-      console.warn('[SSE] Conexão perdida');
+      logRobo("Conexão perdida ou servidor offline", "WARN", { erro: "Connection Lost" });
     }
 
-    return () => source.close()
+    return () => {
+      source.close();
+      logRobo("Conexão encerrada pelo cliente");
+    }
   }, [])
 
   return { data, connected }

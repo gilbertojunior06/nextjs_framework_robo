@@ -8,14 +8,25 @@ import {
   AlertTriangle, Terminal, Accessibility, X, Sun, Type
 } from "lucide-react";
 import { useRobotSSE } from '../../hooks/useRobotSSE';
-// Verifique se o caminho do logRobo está correto no seu projeto
-// import { logRobo } from './logEvents'; 
 
 // --- INTERFACES ---
+// Atualizada para aceitar os campos do Node-RED
 interface RobotData {
-  power?: boolean; emergency?: boolean; activePgm?: number | null;
-  isHome?: boolean; isSleep?: boolean; mode?: string; status?: number;
-  load?: string; temp?: string; oee?: string; pgm1?: boolean; pgm2?: boolean; pgm3?: boolean;
+  power?: boolean; 
+  emergency?: boolean; 
+  activePgm?: number | null;
+  isHome?: boolean; 
+  isSleep?: boolean; 
+  mode?: string; 
+  status?: number;
+  status_robo?: string; // NOVO
+  timestamp?: string;   // NOVO
+  load?: string; 
+  temp?: string; 
+  oee?: string; 
+  pgm1?: boolean; 
+  pgm2?: boolean; 
+  pgm3?: boolean;
 }
 
 type Language = 'PT' | 'EN';
@@ -73,7 +84,7 @@ export default function RoboPage() {
   const [fontSizeMultiplier, setFontSizeMultiplier] = useState(1);
   
   const [screenLogs, setScreenLogs] = useState<ScreenLog[]>([]);
-  const [lastStatus, setLastStatus] = useState<number | null>(null);
+  const [lastStatus, setLastStatus] = useState<string | null>(null);
 
   const fs = (size: number) => `${size * fontSizeMultiplier}px`;
 
@@ -85,8 +96,6 @@ export default function RoboPage() {
       type
     };
     setScreenLogs(prev => [newLog, ...prev].slice(0, 50));
-    // Se a função logRobo não estiver implementada, comente a linha abaixo para evitar erros
-    // try { logRobo(msg); } catch (e) { console.error("Erro no log", e); }
   };
 
   useEffect(() => {
@@ -95,24 +104,29 @@ export default function RoboPage() {
     return () => clearInterval(clock);
   }, []);
 
+  // --- LÓGICA DE ATUALIZAÇÃO COM DADOS DO SSE ---
   useEffect(() => {
     if (data) {
-        setIsPowerOn(data.power ?? false);
-        setIsEmergency(data.emergency ?? false);
-        setActivePgm(data.activePgm ?? null);
-        setIsHome(data.isHome ?? false);
-        setIsSleep(data.isSleep ?? false);
+        setIsPowerOn(data.power ?? isPowerOn);
+        setIsEmergency(data.emergency ?? isEmergency);
+        setActivePgm(data.activePgm ?? activePgm);
+        setIsHome(data.isHome ?? isHome);
+        setIsSleep(data.isSleep ?? isSleep);
         
-        const currentStatus = data.status; 
-        if (currentStatus !== undefined && currentStatus !== lastStatus) {
-          const statusMessage = robotStatusMap[currentStatus] || `Status: ${currentStatus}`;
-          addScreenLog(`Robô: ${statusMessage}`, currentStatus >= 2 ? 'data' : 'info');
-          setLastStatus(currentStatus);
+        // Se recebermos status_robo (texto do Node-RED), adicionamos ao log
+        if (data.status_robo && data.status_robo !== lastStatus) {
+            addScreenLog(`Robô: ${data.status_robo}`, 'data');
+            setLastStatus(data.status_robo);
         }
 
-        if (data.pgm1) addScreenLog("Sinal: Rampa 1 Execução (true)", "data");
-        if (data.pgm2) addScreenLog("Sinal: Rampa 2 Execução (true)", "data");
-        if (data.pgm3) addScreenLog("Sinal: Rampa 3 Execução (true)", "data");
+        // Se recebermos status numérico (padrão antigo)
+        if (data.status !== undefined) {
+           const msgMap = robotStatusMap[data.status];
+           if (msgMap && msgMap !== lastStatus) {
+              addScreenLog(`Robô: ${msgMap}`, 'data');
+              setLastStatus(msgMap);
+           }
+        }
     }
   }, [data, lastStatus]);
 
@@ -238,12 +252,12 @@ export default function RoboPage() {
             
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
               {[
-                { l: t.running, c: '#ef4444', a: !!((isPowerOn && !isEmergency) || (lastStatus !== null && lastStatus >= 2)) },
-                { l: t.sleep, c: '#3b82f6', a: !!(isSleep || lastStatus === 1) },
-                { l: t.home, c: '#3b82f6', a: !!(isHome || lastStatus === 0) },
-                { l: 'RAMP PGM 1', c: '#22c55e', a: !!(activePgm === 0 || lastStatus === 3 || data?.pgm1) },
-                { l: 'RAMP PGM 2', c: '#22c55e', a: !!(activePgm === 1 || lastStatus === 4 || data?.pgm2) },
-                { l: 'RAMP PGM 3', c: '#22c55e', a: !!(activePgm === 2 || lastStatus === 5 || data?.pgm3) },
+                { l: t.running, c: '#ef4444', a: !!(isPowerOn && !isEmergency) },
+                { l: t.sleep, c: '#3b82f6', a: !!(isSleep) },
+                { l: t.home, c: '#3b82f6', a: !!(isHome) },
+                { l: 'RAMP PGM 1', c: '#22c55e', a: !!(activePgm === 0 || data?.status_robo?.includes("1") || data?.pgm1) },
+                { l: 'RAMP PGM 2', c: '#22c55e', a: !!(activePgm === 1 || data?.status_robo?.includes("2") || data?.pgm2) },
+                { l: 'RAMP PGM 3', c: '#22c55e', a: !!(activePgm === 2 || data?.status_robo?.includes("3") || data?.pgm3) },
                 { l: t.estop, c: '#b91c1c', a: !!isEmergency }
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -258,14 +272,7 @@ export default function RoboPage() {
                 <Image src="/Fanuc.png" alt="Braço Fanuc" fill style={{ objectFit: 'contain', filter: isEmergency ? 'grayscale(100%)' : 'none' }} unoptimized />
               </div>
               <div style={{ background: '#000', borderRadius: '10px', border: '2px solid #334155', position: 'relative', overflow: 'hidden', flex: 1.5 }}>
-                <Image 
-                    src="/camera.jpeg" 
-                    alt="Feed Câmera" 
-                    fill 
-                    style={{ objectFit: 'cover', opacity: isPowerOn ? 1 : 0.2 }} 
-                    unoptimized 
-                    priority
-                />
+                <Image src="/camera.jpeg" alt="Feed Câmera" fill style={{ objectFit: 'cover', opacity: isPowerOn ? 1 : 0.2 }} unoptimized priority />
               </div>
             </div>
 
@@ -285,7 +292,7 @@ export default function RoboPage() {
 
           <div style={{ background: isHighContrast ? '#000' : '#1e293b', borderRadius: '10px', padding: '8px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', border: `2px solid ${isHighContrast ? '#fff' : '#334155'}` }}>
             {[
-              { l: t.status, v: isEmergency ? t.stop : (isPowerOn ? t.ready : t.off), c: isEmergency ? '#ef4444' : (isPowerOn ? '#22c55e' : '#ef4444') },
+              { l: t.status, v: data?.status_robo || (isEmergency ? t.stop : (isPowerOn ? t.ready : t.off)), c: isEmergency ? '#ef4444' : (isPowerOn ? '#22c55e' : '#ef4444') },
               { l: t.temp, v: isPowerOn ? (data?.temp || '36.5°C') : '22.0°C' },
               { l: t.load, v: activePgm !== null ? (data?.load || '1.2kg') : '0.0kg' },
               { l: t.oee, v: data?.oee || '94%' },
